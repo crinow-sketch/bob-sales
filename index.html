@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>BOB Sales Tracker</title>
+
+  <!-- PWA & iOS Home Screen Support -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#f0a500">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BOB Sales">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- Sidebar Navigation -->
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <h1 class="logo">BOB</h1>
+      <p class="logo-sub">Sales Tracker</p>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#" class="nav-link active" data-page="dashboard"><span class="nav-icon">&#9632;</span> Dashboard</a></li>
+      <li><a href="#" class="nav-link" data-page="accounts"><span class="nav-icon">&#9679;</span> Accounts</a></li>
+      <li><a href="#" class="nav-link" data-page="activity"><span class="nav-icon">&#9998;</span> Activity Log</a></li>
+      <li><a href="#" class="nav-link" data-page="pipeline"><span class="nav-icon">&#9654;</span> Pipeline</a></li>
+      <li><a href="#" class="nav-link" data-page="sales"><span class="nav-icon">&#36;</span> Sales Tracker</a></li>
+      <li><a href="#" class="nav-link" data-page="routes"><span class="nav-icon">&#9872;</span> Routes</a></li>
+      <li><a href="#" class="nav-link" data-page="importexport"><span class="nav-icon">&#8693;</span> Import/Export</a></li>
+    </ul>
+  </nav>
+
+  <!-- Mobile Bottom Nav -->
+  <nav id="mobile-nav">
+    <a href="#" class="mobile-link active" data-page="dashboard" title="Dashboard">&#9632;<span class="mobile-link-label">Home</span></a>
+    <a href="#" class="mobile-link" data-page="accounts" title="Accounts">&#9679;<span class="mobile-link-label">Accts</span></a>
+    <a href="#" class="mobile-link" data-page="activity" title="Activity">&#9998;<span class="mobile-link-label">Log</span></a>
+    <a href="#" class="mobile-link" data-page="pipeline" title="Pipeline">&#9654;<span class="mobile-link-label">Pipe</span></a>
+    <a href="#" class="mobile-link" data-page="sales" title="Sales">&#36;<span class="mobile-link-label">Sales</span></a>
+    <a href="#" class="mobile-link" data-page="routes" title="Routes">&#9872;<span class="mobile-link-label">Routes</span></a>
+    <a href="#" class="mobile-link" data-page="importexport" title="Import/Export">&#8693;<span class="mobile-link-label">Data</span></a>
+  </nav>
+
+  <!-- Main Content -->
+  <main id="main-content">
+    <!-- Mobile Header -->
+    <div id="mobile-header">
+      <button id="menu-toggle">&#9776;</button>
+      <h1 class="logo">BOB Sales Tracker</h1>
+    </div>
+
+    <!-- Dashboard Page -->
+    <section id="page-dashboard" class="page active">
+      <h2 class="page-title">Dashboard</h2>
+      <div class="kpi-grid" id="kpi-grid"></div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Monthly Kegs Sold</h3>
+          <canvas id="chart-monthly-kegs"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Pipeline Breakdown</h3>
+          <canvas id="chart-pipeline"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Product Mix</h3>
+          <canvas id="chart-product-mix"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Interest Levels</h3>
+          <canvas id="chart-interest"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Accounts Page -->
+    <section id="page-accounts" class="page">
+      <div class="page-header">
+        <h2 class="page-title">Accounts</h2>
+        <button class="btn btn-primary" id="btn-add-account">+ Add Account</button>
+      </div>
+      <div class="filters-bar">
+        <input type="text" id="account-search" class="input" placeholder="Search accounts...">
+        <select id="filter-city" class="input"><option value="">All Cities</option></select>
+        <select id="filter-status" class="input">
+          <option value="">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="Prospect">Prospect</option>
+          <option value="Inactive">Inactive</option>
+          <option value="Declined">Declined</option>
+        </select>
+        <select id="filter-ontap" class="input">
+          <option value="">On Tap?</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+          <option value="Pending">Pending</option>
+        </select>
+        <select id="sort-accounts" class="input">
+          <option value="priorityScore-desc">Priority (High-Low)</option>
+          <option value="priorityScore-asc">Priority (Low-High)</option>
+          <option value="name-asc">Name (A-Z)</option>
+          <option value="name-desc">Name (Z-A)</option>
+          <option value="lastVisitDate-desc">Last Visit (Recent)</option>
+          <option value="lastOrderDate-desc">Last Order (Recent)</option>
+        </select>
+      </div>
+      <div class="table-wrapper">
+        <table id="accounts-table" class="data-table">
+          <thead>
+            <tr>
+              <th>Account</th>
+              <th>City</th>
+              <th>Priority</th>
+              <th>Contact</th>
+              <th>Status</th>
+              <th>On Tap</th>
+              <th>Last Visit</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="accounts-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Activity Log Page -->
+    <section id="page-activity" class="page">
+      <div class="page-header">
+        <h2 class="page-title">Activity Log</h2>
+        <button class="btn btn-primary" id="btn-add-activity">+ Log Visit</button>
+      </div>
+      <div class="filters-bar">
+        <select id="activity-account-filter" class="input"><option value="">All Accounts</option></select>
+        <select id="activity-outcome-filter" class="input">
+          <option value="">All Outcomes</option>
+          <option value="Converted">Converted</option>
+          <option value="Strong Interest">Strong Interest</option>
+          <option value="Moderate Interest">Moderate Interest</option>
+          <option value="No Interest">No Interest</option>
+          <option value="Left Sample">Left Sample</option>
+          <option value="No Contact">No Contact</option>
+        </select>
+        <input type="date" id="activity-date-from" class="input" title="From date">
+        <input type="date" id="activity-date-to" class="input" title="To date">
+      </div>
+      <div id="followup-alerts"></div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Account</th>
+              <th>Contact</th>
+              <th>Interest</th>
+              <th>Outcome</th>
+              <th>Kegs</th>
+              <th>Follow-Up</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="activity-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Pipeline Page -->
+    <section id="page-pipeline" class="page">
+      <div class="page-header">
+        <h2 class="page-title">Pipeline</h2>
+        <button class="btn btn-primary" id="btn-add-pipeline">+ Add to Pipeline</button>
+      </div>
+      <div class="filters-bar">
+        <select id="pipeline-priority-filter" class="input">
+          <option value="">All Priorities</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+        <select id="pipeline-product-filter" class="input">
+          <option value="">All Products</option>
+          <option value="Iron Island IPA">Iron Island IPA</option>
+          <option value="Lovejoy Lager">Lovejoy Lager</option>
+          <option value="Both">Both</option>
+        </select>
+      </div>
+      <div class="kanban-board" id="kanban-board">
+        <div class="kanban-col" data-stage="Cold">
+          <div class="kanban-header">Cold</div>
+          <div class="kanban-cards" data-stage="Cold"></div>
+        </div>
+        <div class="kanban-col" data-stage="Warm Prospect">
+          <div class="kanban-header">Warm Prospect</div>
+          <div class="kanban-cards" data-stage="Warm Prospect"></div>
+        </div>
+        <div class="kanban-col" data-stage="Hot Lead">
+          <div class="kanban-header">Hot Lead</div>
+          <div class="kanban-cards" data-stage="Hot Lead"></div>
+        </div>
+        <div class="kanban-col" data-stage="Needs Follow-Up">
+          <div class="kanban-header">Needs Follow-Up</div>
+          <div class="kanban-cards" data-stage="Needs Follow-Up"></div>
+        </div>
+        <div class="kanban-col" data-stage="Ordered">
+          <div class="kanban-header">Ordered</div>
+          <div class="kanban-cards" data-stage="Ordered"></div>
+        </div>
+        <div class="kanban-col" data-stage="On Tap">
+          <div class="kanban-header">On Tap</div>
+          <div class="kanban-cards" data-stage="On Tap"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sales Tracker Page -->
+    <section id="page-sales" class="page">
+      <div class="page-header">
+        <h2 class="page-title">Sales Tracker</h2>
+        <button class="btn btn-primary" id="btn-add-sales">+ Add Month</button>
+      </div>
+      <div id="sales-goal-bar"></div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Year</th>
+              <th>IPA 1/6</th>
+              <th>IPA 1/2</th>
+              <th>Lager 1/6</th>
+              <th>Lager 1/2</th>
+              <th>Total Kegs</th>
+              <th>Cases</th>
+              <th>Goal</th>
+              <th>% Goal</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sales-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Routes Page -->
+    <section id="page-routes" class="page">
+      <div class="page-header">
+        <h2 class="page-title">Route Planner</h2>
+        <button class="btn btn-primary" id="btn-add-route">+ Add Stop</button>
+      </div>
+      <div class="route-week-tabs">
+        <button class="tab-btn active" data-week="1">Week 1</button>
+        <button class="tab-btn" data-week="2">Week 2</button>
+        <button class="tab-btn" data-week="3">Week 3</button>
+      </div>
+      <div class="route-grid" id="route-grid">
+        <div class="route-day-col">
+          <h3 class="day-header">Tuesday</h3>
+          <div class="route-stops" id="stops-Tuesday"></div>
+        </div>
+        <div class="route-day-col">
+          <h3 class="day-header">Wednesday</h3>
+          <div class="route-stops" id="stops-Wednesday"></div>
+        </div>
+        <div class="route-day-col">
+          <h3 class="day-header">Thursday</h3>
+          <div class="route-stops" id="stops-Thursday"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Import/Export Page -->
+    <section id="page-importexport" class="page">
+      <h2 class="page-title">Import / Export</h2>
+      <div class="ie-grid">
+        <div class="ie-card" style="grid-column:1/-1;border-color:var(--amber)">
+          <h3>Load Brewery Data from Spreadsheets</h3>
+          <p>Load all 178 accounts, 322 visit records, 40 pipeline items, 14 months of sales, and 45 route stops extracted from your existing BOB spreadsheets.</p>
+          <button class="btn btn-primary" id="btn-load-seed" style="font-size:16px;padding:12px 24px">Load All Brewery Data</button>
+          <div id="seed-status"></div>
+        </div>
+        <div class="ie-card">
+          <h3>Import Accounts (CSV)</h3>
+          <p>Upload a CSV with columns: Account Name, Address, City, Volume Rating, Likelihood Rating, Contact Person, Status, Notes</p>
+          <input type="file" id="import-accounts-csv" accept=".csv" class="input">
+          <button class="btn btn-primary" id="btn-import-accounts">Import Accounts</button>
+          <div id="import-accounts-status"></div>
+        </div>
+        <div class="ie-card">
+          <h3>Import Activity Log (CSV)</h3>
+          <p>Upload a CSV with columns: Visit Date, Account Name, Contact Name, Interest Level, Outcome, Visit Notes, Follow-Up Action, Follow-Up Date</p>
+          <input type="file" id="import-activity-csv" accept=".csv" class="input">
+          <button class="btn btn-primary" id="btn-import-activity">Import Activity</button>
+          <div id="import-activity-status"></div>
+        </div>
+        <div class="ie-card">
+          <h3>Export All Data (JSON)</h3>
+          <p>Download a full backup of all app data as JSON.</p>
+          <button class="btn btn-primary" id="btn-export-json">Export JSON Backup</button>
+        </div>
+        <div class="ie-card">
+          <h3>Import JSON Backup</h3>
+          <p>Restore all data from a previously exported JSON backup.</p>
+          <input type="file" id="import-json-file" accept=".json" class="input">
+          <button class="btn btn-primary" id="btn-import-json">Import JSON</button>
+          <div id="import-json-status"></div>
+        </div>
+        <div class="ie-card">
+          <h3>Export Accounts (CSV)</h3>
+          <button class="btn btn-secondary" id="btn-export-accounts-csv">Export Accounts CSV</button>
+        </div>
+        <div class="ie-card">
+          <h3>Export Sales (CSV)</h3>
+          <button class="btn btn-secondary" id="btn-export-sales-csv">Export Sales CSV</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Overlay -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h3 id="modal-title"></h3>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/accounts.js"></script>
+  <script src="js/activity.js"></script>
+  <script src="js/pipeline.js"></script>
+  <script src="js/sales.js"></script>
+  <script src="js/routes.js"></script>
+  <script src="js/import-export.js"></script>
+  <script src="js/sync.js"></script>
+  <script>
+    // Register service worker for offline support
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+    // Start sync after app loads
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => Sync.init(), 1000);
+    });
+  </script>
+</body>
+</html>
