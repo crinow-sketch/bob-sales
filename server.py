@@ -87,6 +87,46 @@ class SyncHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json(data)
         elif parsed.path == '/api/ping':
             self.send_json({"status": "ok", "time": time.time()})
+        elif parsed.path == '/api/force-update':
+            # Returns a small HTML page that clears ALL service worker caches
+            # and reloads the app fresh. Since /api/ routes bypass the SW cache,
+            # this page is always served fresh from the network.
+            html = """<!DOCTYPE html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Updating BOB Sales...</title>
+<style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;
+min-height:100vh;margin:0;background:#1a1a2e;color:#f0a500;text-align:center}
+.box{padding:2rem}h2{margin-bottom:1rem}#status{color:#ccc;margin-top:1rem}</style></head>
+<body><div class="box"><h2>Updating BOB Sales...</h2>
+<p id="status">Clearing old cache...</p></div>
+<script>
+(async function(){
+  const s = document.getElementById('status');
+  try {
+    // Unregister all service workers
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const r of regs) { await r.unregister(); }
+    s.textContent = 'Service worker removed...';
+
+    // Delete all caches
+    const keys = await caches.keys();
+    for (const k of keys) { await caches.delete(k); }
+    s.textContent = 'Cache cleared! Reloading...';
+
+    // Small delay then redirect to app root
+    setTimeout(() => { window.location.href = '/'; }, 1000);
+  } catch(e) {
+    s.textContent = 'Error: ' + e.message + '. Try clearing Safari data manually.';
+  }
+})();
+</script></body></html>"""
+            response = html.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.send_header('Content-Length', len(response))
+            self.send_header('Cache-Control', 'no-store')
+            self.end_headers()
+            self.wfile.write(response)
         else:
             # Serve static files
             super().do_GET()
