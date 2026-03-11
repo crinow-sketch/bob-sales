@@ -129,10 +129,15 @@ const Sync = {
     }
   },
 
-  // Quick item-count fingerprint to detect if data changed
+  // Quick fingerprint to detect if data changed (counts active + deleted)
   _countItems(data) {
     return ['accounts', 'activities', 'pipeline', 'sales', 'routes']
-      .map(k => (data[k] || []).length)
+      .map(k => {
+        const items = data[k] || [];
+        const active = items.filter(i => !i._deleted).length;
+        const deleted = items.filter(i => i._deleted).length;
+        return active + 'd' + deleted;
+      })
       .join(',');
   },
 

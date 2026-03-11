@@ -13,8 +13,18 @@ const DB = {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   },
 
-  // Get all items from a collection
+  // Get all items from a collection (excludes soft-deleted items)
   getAll(key) {
+    try {
+      const items = JSON.parse(localStorage.getItem(this.KEYS[key])) || [];
+      return items.filter(item => !item._deleted);
+    } catch {
+      return [];
+    }
+  },
+
+  // Get ALL items including soft-deleted ones (for sync)
+  getAllRaw(key) {
     try {
       return JSON.parse(localStorage.getItem(this.KEYS[key])) || [];
     } catch {
@@ -36,7 +46,7 @@ const DB = {
 
   // Add a new item
   add(key, item) {
-    const items = this.getAll(key);
+    const items = this.getAllRaw(key);
     item.id = item.id || this.uid();
     item.createdAt = item.createdAt || new Date().toISOString();
     item.updatedAt = new Date().toISOString();
@@ -45,19 +55,23 @@ const DB = {
     return item;
   },
 
-  // Update an existing item
+  // Update an existing item (only updates non-deleted items)
   update(key, id, updates) {
-    const items = this.getAll(key);
-    const idx = items.findIndex(item => item.id === id);
+    const items = this.getAllRaw(key);
+    const idx = items.findIndex(item => item.id === id && !item._deleted);
     if (idx === -1) return null;
     items[idx] = { ...items[idx], ...updates, updatedAt: new Date().toISOString() };
     this.saveAll(key, items);
     return items[idx];
   },
 
-  // Delete an item
+  // Soft-delete an item (marks _deleted so it propagates through sync)
   remove(key, id) {
-    const items = this.getAll(key).filter(item => item.id !== id);
+    const items = this.getAllRaw(key);
+    const idx = items.findIndex(item => item.id === id);
+    if (idx === -1) return;
+    items[idx]._deleted = true;
+    items[idx].updatedAt = new Date().toISOString();
     this.saveAll(key, items);
   },
 
@@ -99,7 +113,8 @@ const DB = {
     for (const key of collections) {
       if (!data[key]) continue;
       const serverItems = data[key];
-      const localItems = this.getAll(key);
+      // Use getAllRaw so we merge WITH soft-deleted items (not losing them)
+      const localItems = this.getAllRaw(key);
 
       // Build merged map: index by ID, keep the newest version of each item
       const merged = {};
@@ -125,12 +140,13 @@ const DB = {
   },
 
   exportAll() {
+    // Include soft-deleted items so deletions propagate through sync
     return {
-      accounts: this.getAccounts(),
-      activities: this.getActivities(),
-      pipeline: this.getPipeline(),
-      sales: this.getSales(),
-      routes: this.getRoutes(),
+      accounts: this.getAllRaw('accounts'),
+      activities: this.getAllRaw('activities'),
+      pipeline: this.getAllRaw('pipeline'),
+      sales: this.getAllRaw('sales'),
+      routes: this.getAllRaw('routes'),
       exportedAt: new Date().toISOString(),
     };
   },
