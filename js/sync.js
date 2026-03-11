@@ -79,8 +79,9 @@ const Sync = {
     this.updateUI('syncing');
 
     try {
-      // Gather local data
+      // Snapshot local data BEFORE sending
       const localData = DB.exportAll();
+      const localCounts = this._countItems(localData);
 
       // Send to server and get merged result
       const response = await fetch(this.serverUrl + '/api/sync', {
@@ -93,15 +94,19 @@ const Sync = {
 
       const merged = await response.json();
 
-      // Check if server has newer data
-      const serverVersion = merged.version || 0;
-      if (serverVersion > this.lastVersion) {
-        // Import merged data (this updates localStorage)
-        DB.importAll(merged);
-        this.lastVersion = serverVersion;
-        localStorage.setItem('bob_sync_version', String(serverVersion));
+      // Always merge server data into local (importAll now safely merges
+      // instead of replacing, so items added during the network round-trip
+      // are preserved)
+      DB.importAll(merged);
 
-        // Refresh the current page view if data changed
+      // Track version for diagnostics
+      const serverVersion = merged.version || 0;
+      this.lastVersion = serverVersion;
+      localStorage.setItem('bob_sync_version', String(serverVersion));
+
+      // Refresh UI only if data actually changed (new items from other devices)
+      const afterCounts = this._countItems(DB.exportAll());
+      if (afterCounts !== localCounts) {
         if (App.currentPage) {
           App.refreshPage(App.currentPage);
         }
@@ -122,6 +127,13 @@ const Sync = {
     } finally {
       this.isSyncing = false;
     }
+  },
+
+  // Quick item-count fingerprint to detect if data changed
+  _countItems(data) {
+    return ['accounts', 'activities', 'pipeline', 'sales', 'routes']
+      .map(k => (data[k] || []).length)
+      .join(',');
   },
 
   // Call this after any data change to trigger an immediate sync

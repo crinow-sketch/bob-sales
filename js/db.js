@@ -92,12 +92,36 @@ const DB = {
   removeRoute(id) { this.remove('routes', id); },
 
   // === Bulk operations ===
+  // Merge server data with local data (protects items added during sync).
+  // Writes directly to localStorage to avoid triggering Sync.nudge().
   importAll(data) {
-    if (data.accounts) this.saveAll('accounts', data.accounts);
-    if (data.activities) this.saveAll('activities', data.activities);
-    if (data.pipeline) this.saveAll('pipeline', data.pipeline);
-    if (data.sales) this.saveAll('sales', data.sales);
-    if (data.routes) this.saveAll('routes', data.routes);
+    const collections = ['accounts', 'activities', 'pipeline', 'sales', 'routes'];
+    for (const key of collections) {
+      if (!data[key]) continue;
+      const serverItems = data[key];
+      const localItems = this.getAll(key);
+
+      // Build merged map: index by ID, keep the newest version of each item
+      const merged = {};
+      for (const item of localItems) {
+        if (item.id) merged[item.id] = item;
+      }
+      for (const item of serverItems) {
+        if (!item.id) continue;
+        if (!merged[item.id]) {
+          // New item from server — add it
+          merged[item.id] = item;
+        } else {
+          // Both sides have it — newer updatedAt wins
+          if ((item.updatedAt || '') >= (merged[item.id].updatedAt || '')) {
+            merged[item.id] = item;
+          }
+        }
+      }
+
+      // Write directly (skip saveAll to avoid triggering Sync.nudge loop)
+      localStorage.setItem(this.KEYS[key], JSON.stringify(Object.values(merged)));
+    }
   },
 
   exportAll() {
