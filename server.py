@@ -190,17 +190,21 @@ min-height:100vh;margin:0;background:#1a1a2e;color:#f0a500;text-align:center}
   const s = document.getElementById('status');
   try {
     // Unregister all service workers
-    const regs = await navigator.serviceWorker.getRegistrations();
-    for (const r of regs) { await r.unregister(); }
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) { await r.unregister(); }
+    }
     s.textContent = 'Service worker removed...';
 
-    // Delete all caches
-    const keys = await caches.keys();
-    for (const k of keys) { await caches.delete(k); }
+    // Delete all SW caches
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      for (const k of keys) { await caches.delete(k); }
+    }
     s.textContent = 'Cache cleared! Reloading...';
 
-    // Small delay then redirect to app root
-    setTimeout(() => { window.location.href = '/'; }, 1000);
+    // Redirect with cache-busting timestamp to force fresh load
+    setTimeout(() => { window.location.href = '/?nocache=' + Date.now(); }, 1000);
   } catch(e) {
     s.textContent = 'Error: ' + e.message + '. Try clearing Safari data manually.';
   }
@@ -261,6 +265,13 @@ min-height:100vh;margin:0;background:#1a1a2e;color:#f0a500;text-align:center}
         self.send_cors_headers()
         self.end_headers()
         self.wfile.write(response)
+
+    def end_headers(self):
+        # Prevent browser HTTP caching of static files (JS, CSS, HTML)
+        # so that force-update actually delivers fresh code
+        if '/api/' not in self.path:
+            self.send_header('Cache-Control', 'no-cache, must-revalidate')
+        super().end_headers()
 
     def send_cors_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
