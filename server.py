@@ -19,9 +19,10 @@ from urllib.parse import urlparse
 PORT = int(os.environ.get('PORT', 9090))
 DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'sync-data.json')
 
-# GitHub Gist for persistent backup (survives Render restarts)
+# Public GitHub Gist for persistent backup (survives Render restarts)
+# Public gist = no auth needed to READ. Writing needs GITHUB_TOKEN env var (optional).
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
-GIST_ID = '57b5c8ccdf5e1134ef7879878ae8a50d'
+GIST_ID = 'be770fd55e24671ca3e5830636ab3689'
 
 # Lock for thread-safe file access
 file_lock = threading.Lock()
@@ -29,16 +30,11 @@ file_lock = threading.Lock()
 # --- GitHub Gist Backup ---
 
 def gist_load():
-    """Load sync data from GitHub Gist (fallback when local file is gone)."""
-    if not GITHUB_TOKEN:
-        return None
+    """Load sync data from public GitHub Gist (no auth needed)."""
     try:
         req = urlreq.Request(
             f'https://api.github.com/gists/{GIST_ID}',
-            headers={
-                'Authorization': f'token {GITHUB_TOKEN}',
-                'Accept': 'application/vnd.github.v3+json',
-            }
+            headers={'Accept': 'application/vnd.github.v3+json'}
         )
         resp = urlreq.urlopen(req, timeout=15)
         gist = json.loads(resp.read())
@@ -57,7 +53,7 @@ def gist_load():
 _gist_save_timer = None
 
 def gist_save(data):
-    """Save sync data to GitHub Gist (debounced — writes at most every 10 seconds)."""
+    """Save sync data to GitHub Gist (debounced). Needs GITHUB_TOKEN env var for writes."""
     global _gist_save_timer
     if not GITHUB_TOKEN:
         return
