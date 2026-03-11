@@ -7,38 +7,124 @@ Usage:
 
 Then open http://<your-ip>:9090 on any device on your WiFi.
 """
+import base64
 import http.server
 import json
 import os
 import threading
 import time
+import urllib.request as urlreq
 from urllib.parse import urlparse
 
 PORT = int(os.environ.get('PORT', 9090))
 DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'sync-data.json')
 
+# GitHub Gist for persistent backup (survives Render restarts)
+GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
+GIST_ID = '57b5c8ccdf5e1134ef7879878ae8a50d'
+
 # Lock for thread-safe file access
 file_lock = threading.Lock()
 
+# --- GitHub Gist Backup ---
+
+def gist_load():
+    """Load sync data from GitHub Gist (fallback when local file is gone)."""
+    if not GITHUB_TOKEN:
+        return None
+    try:
+        req = urlreq.Request(
+            f'https://api.github.com/gists/{GIST_ID}',
+            headers={
+                'Authorization': f'token {GITHUB_TOKEN}',
+                'Accept': 'application/vnd.github.v3+json',
+            }
+        )
+        resp = urlreq.urlopen(req, timeout=15)
+        gist = json.loads(resp.read())
+        content = gist.get('files', {}).get('sync-data.json', {}).get('content', '{}')
+        data = json.loads(content)
+        if data.get('version', 0) > 0:
+            print(f'  Restored from GitHub backup: v{data["version"]}, '
+                  f'{sum(len(data.get(c, [])) for c in ["accounts","activities","pipeline","sales","routes"])} records')
+            return data
+        return None
+    except Exception as e:
+        print(f'  GitHub backup load failed: {e}')
+        return None
+
+
+_gist_save_timer = None
+
+def gist_save(data):
+    """Save sync data to GitHub Gist (debounced — writes at most every 10 seconds)."""
+    global _gist_save_timer
+    if not GITHUB_TOKEN:
+        return
+
+    def do_save():
+        try:
+            payload = json.dumps({
+                'files': {
+                    'sync-data.json': {
+                        'content': json.dumps(data, ensure_ascii=False)
+                    }
+                }
+            }).encode('utf-8')
+            req = urlreq.Request(
+                f'https://api.github.com/gists/{GIST_ID}',
+                data=payload,
+                headers={
+                    'Authorization': f'token {GITHUB_TOKEN}',
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json',
+                },
+                method='PATCH'
+            )
+            urlreq.urlopen(req, timeout=15)
+            print(f'  GitHub backup saved: v{data.get("version", 0)}')
+        except Exception as e:
+            print(f'  GitHub backup save failed: {e}')
+
+    # Debounce: save at most every 10 seconds
+    if _gist_save_timer:
+        _gist_save_timer.cancel()
+    _gist_save_timer = threading.Timer(10.0, do_save)
+    _gist_save_timer.daemon = True
+    _gist_save_timer.start()
+
+
+# --- Local Data Storage ---
+
+EMPTY_DATA = {"accounts": [], "activities": [], "pipeline": [], "sales": [], "routes": [], "version": 0}
 
 def read_sync_data():
-    """Read the current synced data from disk."""
+    """Read sync data from disk, falling back to GitHub backup."""
     with file_lock:
         if not os.path.exists(DATA_FILE):
-            return {"accounts": [], "activities": [], "pipeline": [], "sales": [], "routes": [], "version": 0}
+            # Local file missing (Render restart?) — try GitHub backup
+            backup = gist_load()
+            if backup:
+                os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+                with open(DATA_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(backup, f, indent=2, ensure_ascii=False)
+                return backup
+            return {**EMPTY_DATA}
         try:
             with open(DATA_FILE, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except:
-            return {"accounts": [], "activities": [], "pipeline": [], "sales": [], "routes": [], "version": 0}
+            return {**EMPTY_DATA}
 
 
 def write_sync_data(data):
-    """Write synced data to disk."""
+    """Write synced data to disk AND trigger GitHub backup."""
     with file_lock:
         os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
         with open(DATA_FILE, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
+    # Also back up to GitHub (debounced)
+    gist_save(data)
 
 
 def merge_collection(server_items, client_items):
