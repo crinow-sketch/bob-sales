@@ -172,7 +172,11 @@ class SyncHandler(http.server.SimpleHTTPRequestHandler):
             data = read_sync_data()
             self.send_json(data)
         elif parsed.path == '/api/ping':
-            self.send_json({"status": "ok", "time": time.time()})
+            self.send_json({
+                "status": "ok",
+                "time": time.time(),
+                "backup": "configured" if GITHUB_TOKEN else "not configured",
+            })
         elif parsed.path == '/api/force-update':
             # Returns a small HTML page that clears ALL service worker caches
             # and reloads the app fresh. Since /api/ routes bypass the SW cache,
