@@ -40,6 +40,7 @@ const App = {
       case 'pipeline': Pipeline.render(); break;
       case 'sales': Sales.render(); break;
       case 'routes': Routes.render(); break;
+      case 'nearby': Nearby.render(); break;
       case 'importexport': ImportExport.init(); break;
     }
   },

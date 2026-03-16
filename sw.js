@@ -1,5 +1,5 @@
 // BOB Sales Tracker - Service Worker for Offline Support
-const CACHE_NAME = 'bob-sales-v4';
+const CACHE_NAME = 'bob-sales-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const ASSETS = [
   './js/sales.js',
   './js/routes.js',
   './js/import-export.js',
+  './js/nearby.js',
   './js/sync.js',
   './data/seed.json',
   './icons/icon-192.png',

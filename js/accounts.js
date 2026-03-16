@@ -185,6 +185,27 @@ const Accounts = {
         <label>Notes</label>
         <textarea class="input" id="f-notes">${this.esc(acct.notes || '')}</textarea>
       </div>
+      <div class="form-group">
+        <label style="margin-bottom:8px">Business Hours</label>
+        <div class="hours-grid">
+          ${['mon','tue','wed','thu','fri','sat','sun'].map(day => {
+            const label = {mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun'}[day];
+            const val = (acct.hours && acct.hours[day]) || '';
+            return '<div class="hours-row"><span class="hours-day-label">' + label + '</span><input class="input hours-input" id="f-hours-' + day + '" value="' + this.esc(val) + '" placeholder="11:00-02:00"></div>';
+          }).join('')}
+        </div>
+        <small style="color:var(--text-muted)">Format: HH:MM-HH:MM (24h). Use "closed" if closed.</small>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Latitude</label>
+          <input class="input" id="f-lat" type="number" step="any" value="${acct.lat || ''}">
+        </div>
+        <div class="form-group">
+          <label>Longitude</label>
+          <input class="input" id="f-lng" type="number" step="any" value="${acct.lng || ''}">
+        </div>
+      </div>
     `;
 
     App.openModal(isEdit ? 'Edit Account' : 'Add Account', html, () => {
@@ -193,6 +214,13 @@ const Accounts = {
       const vol = parseInt(document.getElementById('f-volume').value) || 0;
       const like = parseInt(document.getElementById('f-likelihood').value) || 0;
       const selectedProducts = [...document.querySelectorAll('.f-product-check:checked')].map(cb => cb.value);
+
+      const hours = {};
+      ['mon','tue','wed','thu','fri','sat','sun'].forEach(day => {
+        hours[day] = document.getElementById('f-hours-' + day).value.trim();
+      });
+      const latVal = parseFloat(document.getElementById('f-lat').value);
+      const lngVal = parseFloat(document.getElementById('f-lng').value);
 
       const data = {
         name,
@@ -210,6 +238,9 @@ const Accounts = {
         lastVisitDate: document.getElementById('f-lastvisit').value,
         lastOrderDate: document.getElementById('f-lastorder').value,
         notes: document.getElementById('f-notes').value.trim(),
+        hours,
+        lat: isNaN(latVal) ? null : latVal,
+        lng: isNaN(lngVal) ? null : lngVal,
       };
 
       if (isEdit) {
@@ -283,6 +314,20 @@ const Accounts = {
           </div>
         </div>
 
+        <!-- Business Hours -->
+        ${acct.hours ? `
+        <div class="detail-section">
+          <div class="detail-section-title">Business Hours</div>
+          <div class="hours-display">
+            ${['mon','tue','wed','thu','fri','sat','sun'].map(day => {
+              const label = {mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun'}[day];
+              const val = acct.hours[day] || 'Unknown';
+              return '<div class="hours-display-row"><span class="hours-day-label">' + label + '</span><span>' + (val === 'closed' ? '<span style="color:var(--red)">Closed</span>' : this.esc(val)) + '</span></div>';
+            }).join('')}
+          </div>
+        </div>
+        ` : ''}
+
         <!-- Account Notes -->
         ${acct.notes ? `
         <div class="detail-section">
@@ -346,9 +391,10 @@ const Accounts = {
         </div>
 
         <!-- Action Buttons -->
-        <div style="display:flex;gap:8px;margin-top:16px">
+        <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
           <button class="btn btn-primary" onclick="App.closeModal();Activity.openForm(null,\'${id}\')">Log Visit</button>
           <button class="btn btn-secondary" onclick="App.closeModal();Accounts.openForm(\'${id}\')">Edit Account</button>
+          ${acct.lat && acct.lng ? `<button class="btn btn-secondary" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${acct.lat},${acct.lng}','_blank')">Navigate</button>` : ''}
           ${!pipelineItems.length ? `<button class="btn btn-secondary" onclick="App.closeModal();Pipeline.openForm(null)">Add to Pipeline</button>` : ''}
         </div>
       </div>

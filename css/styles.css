@@ -809,6 +809,117 @@ textarea.input {
   }
 }
 
+/* === Nearby & Open === */
+.nearby-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.nearby-status {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.nearby-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  transition: border-color var(--transition);
+}
+.nearby-card:hover { border-color: var(--amber); }
+.nearby-open { border-left: 3px solid var(--green); }
+.nearby-closed { border-left: 3px solid var(--text-muted); }
+.nearby-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+.nearby-card-distance {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--amber);
+  white-space: nowrap;
+  margin-left: 12px;
+}
+.nearby-card-address {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.nearby-card-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.nearby-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-open { background: var(--green); }
+.dot-closed { background: var(--text-muted); }
+.nearby-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.nearby-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Hours grid in account form */
+.hours-grid {
+  display: grid;
+  gap: 6px;
+}
+.hours-row {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+.hours-day-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.hours-input {
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+}
+
+/* Hours display in account detail */
+.hours-display {
+  display: grid;
+  gap: 4px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.hours-display-row {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 8px;
+  font-size: 13px;
+}
+
 /* === Responsive === */
 @media (max-width: 768px) {
   #sidebar {
@@ -881,6 +992,12 @@ textarea.input {
     min-width: unset;
     width: 100%;
   }
+
+  /* Nearby page mobile */
+  .nearby-controls { flex-direction: column; align-items: stretch; }
+  .nearby-card { padding: 14px; }
+  .nearby-card-actions { flex-wrap: wrap; }
+  .nearby-card-distance { font-size: 16px; }
 
   /* Route stop cards bigger touch targets */
   .route-stop-card { padding: 14px; }

@@ -32,6 +32,7 @@
       <li><a href="#" class="nav-link" data-page="pipeline"><span class="nav-icon">&#9654;</span> Pipeline</a></li>
       <li><a href="#" class="nav-link" data-page="sales"><span class="nav-icon">&#36;</span> Sales Tracker</a></li>
       <li><a href="#" class="nav-link" data-page="routes"><span class="nav-icon">&#9872;</span> Routes</a></li>
+      <li><a href="#" class="nav-link" data-page="nearby"><span class="nav-icon">&#9737;</span> Nearby & Open</a></li>
       <li><a href="#" class="nav-link" data-page="importexport"><span class="nav-icon">&#8693;</span> Import/Export</a></li>
     </ul>
   </nav>
@@ -44,7 +45,7 @@
     <a href="#" class="mobile-link" data-page="pipeline" title="Pipeline">&#9654;<span class="mobile-link-label">Pipe</span></a>
     <a href="#" class="mobile-link" data-page="sales" title="Sales">&#36;<span class="mobile-link-label">Sales</span></a>
     <a href="#" class="mobile-link" data-page="routes" title="Routes">&#9872;<span class="mobile-link-label">Routes</span></a>
-    <a href="#" class="mobile-link" data-page="importexport" title="Import/Export">&#8693;<span class="mobile-link-label">Data</span></a>
+    <a href="#" class="mobile-link" data-page="nearby" title="Nearby">&#9737;<span class="mobile-link-label">Near</span></a>
   </nav>
 
   <!-- Main Content -->
@@ -273,6 +274,14 @@
       </div>
     </section>
 
+    <!-- Nearby & Open Page -->
+    <section id="page-nearby" class="page">
+      <div class="page-header">
+        <h2 class="page-title">Nearby & Open</h2>
+      </div>
+      <div id="nearby-content"></div>
+    </section>
+
     <!-- Import/Export Page -->
     <section id="page-importexport" class="page">
       <h2 class="page-title">Import / Export</h2>
@@ -348,6 +357,7 @@
   <script src="js/sales.js"></script>
   <script src="js/routes.js"></script>
   <script src="js/import-export.js"></script>
+  <script src="js/nearby.js"></script>
   <script src="js/sync.js"></script>
   <script>
     // Register service worker for offline support
