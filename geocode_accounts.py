@@ -16,7 +16,8 @@ import sys
 
 SERVER = sys.argv[1] if len(sys.argv) > 1 else "https://bob-sales.onrender.com"
 
-NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+# Use Photon (Komoot) geocoder — same OSM data, more lenient rate limits
+PHOTON_URL = "https://photon.komoot.io/api"
 
 # Default hours for Buffalo bars (most are 11am–2am, Sunday shorter)
 DEFAULT_HOURS = {
@@ -42,24 +43,29 @@ def geocode(name, address, city):
 
     for q in queries:
         params = urllib.parse.urlencode({
-            'q': q, 'format': 'json', 'limit': 1, 'countrycodes': 'us'
+            'q': q, 'limit': 1, 'lat': 42.89, 'lon': -78.88  # Bias towards Buffalo
         })
-        url = f"{NOMINATIM_URL}?{params}"
+        url = f"{PHOTON_URL}?{params}"
         req = urllib.request.Request(url, headers={
-            'User-Agent': 'BOBSalesTracker/1.0 (brewery-sales-crm)'
+            'User-Agent': 'BOBSalesTracker/1.0'
         })
         try:
             resp = urllib.request.urlopen(req, timeout=10)
-            results = json.loads(resp.read())
-            if results:
-                lat = float(results[0]['lat'])
-                lon = float(results[0]['lon'])
-                # Sanity check: should be roughly in the Buffalo, NY area
+            data = json.loads(resp.read())
+            features = data.get('features', [])
+            if features:
+                coords = features[0]['geometry']['coordinates']
+                lon, lat = coords[0], coords[1]
+                # Sanity check: should be roughly in the Buffalo/WNY area
                 if 42.0 < lat < 43.5 and -79.5 < lon < -78.0:
                     return lat, lon
         except Exception as e:
+            if '429' in str(e) or '403' in str(e):
+                print("(rate limited, waiting 30s) ", end='', flush=True)
+                time.sleep(30)
+                continue
             print(f"    Error: {e}")
-        time.sleep(1.1)  # Rate limit
+        time.sleep(1.5)
 
     return None, None
 
