@@ -194,7 +194,7 @@ const Accounts = {
             return '<div class="hours-row"><span class="hours-day-label">' + label + '</span><input class="input hours-input" id="f-hours-' + day + '" value="' + this.esc(val) + '" placeholder="11:00-02:00"></div>';
           }).join('')}
         </div>
-        <small style="color:var(--text-muted)">Format: HH:MM-HH:MM (24h). Use "closed" if closed.</small>
+        <small style="color:var(--text-muted)">Format: HH:MM-HH:MM (24h, e.g. 16:00-02:00 = 4 PM–2 AM). Use "closed" if closed.</small>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -322,7 +322,7 @@ const Accounts = {
             ${['mon','tue','wed','thu','fri','sat','sun'].map(day => {
               const label = {mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun'}[day];
               const val = acct.hours[day] || 'Unknown';
-              return '<div class="hours-display-row"><span class="hours-day-label">' + label + '</span><span>' + (val === 'closed' ? '<span style="color:var(--red)">Closed</span>' : this.esc(val)) + '</span></div>';
+              return '<div class="hours-display-row"><span class="hours-day-label">' + label + '</span><span>' + (val === 'closed' ? '<span style="color:var(--red)">Closed</span>' : this.formatHoursDisplay(val)) + '</span></div>';
             }).join('')}
           </div>
         </div>
@@ -413,6 +413,25 @@ const Accounts = {
       App.toast('Account deleted');
       this.render();
     }
+  },
+
+  // Convert "HH:MM" to "H:MM AM/PM"
+  formatTime12(timeStr) {
+    const m = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return timeStr;
+    let h = parseInt(m[1]);
+    const min = m[2];
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return h12 + ':' + min + ' ' + ampm;
+  },
+
+  // Convert "HH:MM-HH:MM" to "H:MM AM - H:MM AM" for display
+  formatHoursDisplay(val) {
+    if (!val || val === 'unknown') return val || 'Unknown';
+    const parts = val.split('-');
+    if (parts.length !== 2) return this.esc(val);
+    return this.formatTime12(parts[0].trim()) + ' – ' + this.formatTime12(parts[1].trim());
   },
 
   esc(str) {
