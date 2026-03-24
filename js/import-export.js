@@ -190,7 +190,7 @@ const ImportExport = {
   exportJSON() {
     const data = DB.exportAll();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    this.downloadBlob(blob, `bob-sales-backup-${new Date().toISOString().slice(0,10)}.json`);
+    this.downloadBlob(blob, `bob-sales-backup-${App.todayLocal()}.json`);
     App.toast('JSON backup exported');
   },
 

@@ -47,7 +47,7 @@ const Activity = {
 
   renderAlerts() {
     const container = document.getElementById('followup-alerts');
-    const today = new Date().toISOString().slice(0, 10);
+    const today = App.todayLocal();
     const overdue = DB.getActivities().filter(a =>
       a.followUpDate && a.followUpDate <= today && a.outcome !== 'Converted'
     );
@@ -103,7 +103,7 @@ const Activity = {
       <div class="form-row">
         <div class="form-group">
           <label>Visit Date *</label>
-          <input class="input" id="f-act-date" type="date" value="${act.visitDate || new Date().toISOString().slice(0,10)}">
+          <input class="input" id="f-act-date" type="date" value="${act.visitDate || App.todayLocal()}">
         </div>
         <div class="form-group">
           <label>Contact Name</label>

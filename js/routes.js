@@ -219,7 +219,7 @@ const Routes = {
       // Also log as an activity
       DB.addActivity({
         accountId: item.accountId,
-        visitDate: new Date().toISOString().slice(0, 10),
+        visitDate: App.todayLocal(),
         outcome: data.outcome,
         kegsOrdered: data.kegsOrdered,
         followUpDate: data.followUpDate,
@@ -229,7 +229,7 @@ const Routes = {
       });
 
       // Update account last visit
-      DB.updateAccount(item.accountId, { lastVisitDate: new Date().toISOString().slice(0, 10) });
+      DB.updateAccount(item.accountId, { lastVisitDate: App.todayLocal() });
 
       App.toast('Visit logged');
       App.closeModal();

@@ -12,7 +12,7 @@ const Dashboard = {
     const activities = DB.getActivities();
     const pipeline = DB.getPipeline();
     const sales = DB.getSales();
-    const today = new Date().toISOString().slice(0, 10);
+    const today = App.todayLocal();
 
     // Current month sales
     const now = new Date();

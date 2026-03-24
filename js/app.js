@@ -167,6 +167,12 @@ const App = {
     return this.badge(val, map[val] || 'no');
   },
 
+  // Utility: get today's date as YYYY-MM-DD in local timezone (not UTC)
+  todayLocal() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  },
+
   // Utility: get unique cities from accounts
   getCities() {
     const cities = [...new Set(DB.getAccounts().map(a => a.city).filter(Boolean))];
