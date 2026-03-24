@@ -117,8 +117,15 @@ const App = {
   },
 
   // Utility: format date
+  // Handles date-only strings like "2026-03-24" without timezone shift
   formatDate(dateStr) {
     if (!dateStr) return '-';
+    // If it's a date-only string (YYYY-MM-DD), parse parts directly to avoid UTC→local timezone shift
+    const dateOnly = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnly) {
+      const d = new Date(parseInt(dateOnly[1]), parseInt(dateOnly[2]) - 1, parseInt(dateOnly[3]));
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
     const d = new Date(dateStr);
     if (isNaN(d)) return dateStr;
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
