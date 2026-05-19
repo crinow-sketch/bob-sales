@@ -168,7 +168,7 @@ const ImportExport = {
   // === Load Seed Data ===
   async loadSeedData() {
     try {
-      const resp = await fetch('data/seed.json');
+      const resp = await fetch('data/seed.json?_t=' + Date.now(), { cache: 'no-store' });
       if (!resp.ok) throw new Error('Could not load seed.json');
       const data = await resp.json();
       DB.importAll(data);

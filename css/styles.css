@@ -1063,6 +1063,48 @@ textarea.input {
   }
 }
 
+/* === Document Import Drop Zone === */
+.doc-drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  margin-bottom: 16px;
+  background: var(--bg-card);
+}
+.doc-drop-zone:hover, .doc-drop-zone.drag-over {
+  border-color: var(--amber);
+  background: rgba(240, 165, 0, 0.05);
+}
+.doc-drop-icon { font-size: 36px; margin-bottom: 8px; }
+.doc-drop-text { font-size: 15px; color: var(--text-primary); font-weight: 600; }
+.doc-drop-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+.doc-preview-container { margin-top: 16px; }
+.doc-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.doc-preview-header .btn { margin-left: 8px; }
+.doc-preview-table .notes-cell {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.doc-preview-table .match-cell em { color: var(--text-muted); }
+tr.match-good .match-cell { color: var(--green); }
+tr.match-partial .match-cell { color: var(--amber); }
+tr.match-none .match-cell { color: var(--red); }
+
+#doc-import-status { margin-bottom: 8px; }
+
 /* === Scrollbar === */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-dark); }

@@ -2,6 +2,8 @@
 const Activity = {
   render() {
     this.populateAccountFilter();
+    const dropArea = document.getElementById('doc-import-area');
+    if (dropArea && typeof DocImport !== 'undefined') DocImport.render(dropArea);
     this.renderAlerts();
     this.renderTable();
     this.setupListeners();

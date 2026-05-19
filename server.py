@@ -267,10 +267,11 @@ min-height:100vh;margin:0;background:#1a1a2e;color:#f0a500;text-align:center}
         self.wfile.write(response)
 
     def end_headers(self):
-        # Prevent browser HTTP caching of static files (JS, CSS, HTML)
-        # so that force-update actually delivers fresh code
+        # Prevent ALL browser HTTP caching so updates always arrive fresh
         if '/api/' not in self.path:
-            self.send_header('Cache-Control', 'no-cache, must-revalidate')
+            self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
         super().end_headers()
 
     def send_cors_headers(self):

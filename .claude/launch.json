@@ -5,7 +5,8 @@
       "name": "sales-app",
       "runtimeExecutable": "python",
       "runtimeArgs": ["server.py"],
-      "port": 9090
+      "port": 9090,
+      "autoPort": true
     }
   ]
 }

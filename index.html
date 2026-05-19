@@ -17,6 +17,9 @@
 
   <link rel="stylesheet" href="css/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <script>if(typeof pdfjsLib!=='undefined')pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';</script>
 </head>
 <body>
   <!-- Sidebar Navigation -->
@@ -150,6 +153,7 @@
         <input type="date" id="activity-date-from" class="input" title="From date">
         <input type="date" id="activity-date-to" class="input" title="To date">
       </div>
+      <div id="doc-import-area"></div>
       <div id="followup-alerts"></div>
       <div class="table-wrapper">
         <table class="data-table">
@@ -357,12 +361,27 @@
   <script src="js/sales.js"></script>
   <script src="js/routes.js"></script>
   <script src="js/import-export.js"></script>
+  <script src="js/doc-import.js"></script>
   <script src="js/nearby.js"></script>
   <script src="js/sync.js"></script>
   <script>
     // Register service worker for offline support
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+        .then(reg => {
+          // Force check for SW update on every page load
+          reg.update();
+          // Auto-activate new SW when found
+          reg.addEventListener('updatefound', () => {
+            const newSW = reg.installing;
+            newSW.addEventListener('statechange', () => {
+              if (newSW.state === 'activated') {
+                console.log('Service worker updated, caches refreshed');
+              }
+            });
+          });
+        })
+        .catch(() => {});
     }
     // Start sync after app loads
     document.addEventListener('DOMContentLoaded', () => {
